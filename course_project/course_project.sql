@@ -133,7 +133,7 @@ SELECT first_name, last_name, email, phone FROM vk.users;
 
 -- 10 предметов
 INSERT INTO courses (course_name, lessons_amount, max_members)
-VALUES ('Основы языка Python', 8, 50),
+VALUES   ('Основы языка Python', 8, 50),
 	   ('Linux. Рабочая станция', 8, 50),
 	   ('Базы данных', 8, 50),
 	   ('Библиотеки Python для Data Science: Numpy, Matplotlib, Scikit-learn', 10, 50),
@@ -433,7 +433,7 @@ ORDER BY result DESC;
 +------------+---------------------+---------------------------------------------------------+--------------------------------------+-----------------+-----------------+--------+
 10 rows in set (0.03 sec)
 
--- 2. Запрос выводит название предмета, количество созданных, по нему групп и общее количество когда-либо записанных на предмет студентов.
+-- 2. Запрос выводит название предмета, количество, созданных по нему, групп и общее количество когда-либо записанных на предмет студентов.
 
 SELECT c.course_name, COUNT(DISTINCT gc.group_id) total_groups, COUNT(gc.group_id) total_students
 FROM courses c LEFT JOIN groups_courses gc
@@ -538,21 +538,7 @@ INSERT INTO groups_users (user_id, group_id) VALUES (15, 9);
 INSERT INTO tests (course_id, test_name, questions_amount, cor_ans_to_pass) VALUES (9, 'Линейная алгебра. Основы', 5, 4);
 
 DELIMITER //
-/*
-DROP TRIGGER IF EXISTS course_check_before_ins // 
-CREATE TRIGGER course_check_before_ins BEFORE INSERT ON test_attempts
-FOR EACH ROW
-BEGIN
-	IF NEW.test_id NOT IN (SELECT test_id 
-                           FROM groups_users gu JOIN groups_courses gc 
-				                                USING (group_id)
-				                                  LEFT JOIN tests
-				                                  USING (course_id)
-                           WHERE user_id = NEW.user_id AND date_ends < NOW())
-    THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Student hasnt finished the course. INSERT has been cancelled.';
-	END IF;
-END //
-*/
+
 DROP TRIGGER IF EXISTS course_check_before_ins // 
 CREATE TRIGGER course_check_before_ins BEFORE INSERT ON test_attempts
 FOR EACH ROW
@@ -572,12 +558,12 @@ END //
 DELIMITER ;
 
 -- проверка работы триггера
--- попробуем добавить попытку прохождения теста пользователю, не закончившему курс по линалу.
+-- попробуем добавить попытку прохождения теста пользователю, не закончившему курс по линейной алгебре.
 
 mysql> INSERT INTO test_attempts (user_id, test_id) VALUES (10, 4);
 ERROR 1644 (45000): Student hasnt finished the course. INSERT has been cancelled.
 
--- добавим попытку прохождения теста пользователю, закончившему курс по линалу.
+-- добавим попытку прохождения теста пользователю, закончившему курс по линейной алгебре.
 
 mysql> INSERT INTO test_attempts (user_id, test_id) VALUES (15, 4);
 Query OK, 1 row affected (0.01 sec)
